@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Memory master</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kawaii Memory Master - Extreme Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mitr:wght@300;500&family=Quicksand:wght@500;700&display=swap');
+
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #ffb3c1;
+            --bg: #fff0f3;
+            --accent: #c9184a;
+            --gray: #adb5bd;
+            --extreme: #7209b7;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Quicksand', 'Mitr', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #ff758f;
+        }
+
+        #game-container {
+            background: white;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(255, 182, 193, 0.4);
+            text-align: center;
+            width: 360px;
+        }
+
+        h1 { margin: 0 0 15px 0; color: var(--primary); font-size: 1.8rem; }
+
+        .control-group { margin-bottom: 12px; }
+        .label { font-size: 0.75rem; font-weight: bold; margin-bottom: 4px; display: block; opacity: 0.8; color: var(--accent); }
+
+        .btn-row { display: flex; justify-content: center; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
+
+        .toggle-btn {
+            background: #ffe5ec;
+            border: 2px solid var(--secondary);
+            padding: 5px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #ff758f;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transition: 0.2s;
+            flex: 1;
+            min-width: 65px;
+        }
+
+        .toggle-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* สำหรับระดับยากมาก */
+        .diff-opt.extreme-active {
+            background: var(--extreme) !important;
+            border-color: var(--extreme) !important;
+            color: white !important;
+        }
+
+        .special-btn { border-style: dashed; }
+        .special-btn.active { background: var(--extreme); border-color: var(--extreme); color: white; }
+
+        #statusText {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            height: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            display: none;
+        }
+        #timer-fill {
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .grid {
+            display: grid;
+            gap: 10px;
+            margin: 0 auto 20px auto;
+            width: 280px;
+            height: 280px;
+        }
+
+        .tile {
+            background-color: var(--secondary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #ff8fa3;
+        }
+
+        .tile.active {
+            background-color: #fff;
+            box-shadow: 0 0 15px var(--primary);
+            transform: scale(0.92);
+        }
+
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(1.5deg); }
+            75% { transform: rotate(-1.5deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .chaos-active { animation: shake 0.4s infinite; }
+
+        .main-controls { display: flex; gap: 10px; }
+
+        #actionBtn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--accent);
+            flex: 2;
+        }
+
+        #quitBtn {
+            background-color: var(--gray);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #6c757d;
+            flex: 1;
+            display: none;
+        }
+
+        #actionBtn:active, #quitBtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #666; }
+
+        #log {
+            margin-top: 15px;
+            padding: 8px;
+            height: 60px;
+            overflow-y: auto;
+            font-size: 0.75rem;
+            background: #fff5f7;
+            border-radius: 15px;
+            border: 1px dashed var(--secondary);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>✨ Memory Master ✨</h1>
+    
+    <div class="control-group">
+        <span class="label">GRID SIZE</span>
+        <div class="btn-row">
+            <button class="toggle-btn grid-opt active" onclick="setGrid(2, this)">2x2</button>
+            <button class="toggle-btn grid-opt" onclick="setGrid(3, this)">3x3</button>
+            <button class="toggle-btn grid-opt" onclick="setGrid(4, this)">4x4</button>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <span class="label">DIFFICULTY (STEPS)</span>
+        <div class="btn-row">
+            <button class="toggle-btn diff-opt active" onclick="setDifficulty(3, this)">ง่าย (3)</button>
+            <button class="toggle-btn diff-opt" onclick="setDifficulty(4, this)">กลาง (4)</button>
+            <button class="toggle-btn diff-opt" onclick="setDifficulty(5, this)">ยาก (5)</button>
+            <button class="toggle-btn diff-opt" onclick="setDifficulty(6, this)">ยากมาก (6)</button>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <span class="label">SPECIAL MODES</span>
+        <div class="btn-row">
+            <button id="speedMode" class="toggle-btn special-btn" onclick="this.classList.toggle('active')">SPEED ⚡</button>
+            <button id="chaosMode" class="toggle-btn special-btn" onclick="this.classList.toggle('active')">SHAKE 🌀</button>
+            <button id="timerMode" class="toggle-btn special-btn" onclick="this.classList.toggle('active')">TIMER ⏳</button>
+        </div>
+    </div>
+
+    <div id="statusText">Select & Play!</div>
+    
+    <div class="timer-bar" id="timerBar"><div id="timer-fill"></div></div>
+
+    <div id="gameGrid" class="grid" style="grid-template-columns: repeat(2, 1fr);"></div>
+
+    <div class="main-controls">
+        <button id="actionBtn" onclick="showSequence()">START GAME</button>
+        <button id="quitBtn" onclick="resetGame()">EXIT</button>
+    </div>
+
+    <div id="log"></div>
+</div>
+
+<script>
+    const statusText = document.getElementById('statusText');
+    const actionBtn = document.getElementById('actionBtn');
+    const quitBtn = document.getElementById('quitBtn');
+    const gameGrid = document.getElementById('gameGrid');
+    const log = document.getElementById('log');
+    const timerBar = document.getElementById('timerBar');
+    const timerFill = document.getElementById('timer-fill');
+    
+    let sequence = [];
+    let playerSequence = [];
+    let isShowing = false;
+    let currentSteps = 3;
+    let gridSize = 2;
+    let currentTimeout = null;
+    let timerInterval = null;
+
+    function initGrid() {
+        gameGrid.innerHTML = '';
+        gameGrid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+        for (let i = 1; i <= gridSize * gridSize; i++) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.id = `tile-${i}`;
+            tile.onclick = () => handleInput(i);
+            gameGrid.appendChild(tile);
+        }
+    }
+
+    function setGrid(size, btn) {
+        if (isShowing || sequence.length > 0) return;
+        gridSize = size;
+        document.querySelectorAll('.grid-opt').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        initGrid();
+    }
+
+    function setDifficulty(steps, btn) {
+        if (isShowing || sequence.length > 0) return;
+        currentSteps = steps;
+        document.querySelectorAll('.diff-opt').forEach(b => {
+            b.classList.remove('active');
+            b.classList.remove('extreme-active');
+        });
+        
+        if(steps === 6) {
+            btn.classList.add('extreme-active');
+        } else {
+            btn.classList.add('active');
+        }
+        statusText.innerText = `Mode: ${btn.innerText}`;
+    }
+
+    function triggerTileVisual(id) {
+        const el = document.getElementById(`tile-${id}`);
+        if (el) {
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 300);
+        }
+    }
+
+    async function showSequence() {
+        isShowing = true;
+        actionBtn.style.display = 'none';
+        quitBtn.style.display = 'block';
+        toggleConfig(false);
+        
+        sequence = [];
+        playerSequence = [];
+        statusText.innerText = "Watch...";
+
+        if(document.getElementById('chaosMode').classList.contains('active')) {
+            gameGrid.classList.add('chaos-active');
+        }
+
+        let speed = 800;
+        const isSpeedMode = document.getElementById('speedMode').classList.contains('active');
+
+        for (let i = 0; i < currentSteps; i++) {
+            if (!isShowing) return;
+            const id = Math.floor(Math.random() * (gridSize * gridSize)) + 1;
+            sequence.push(id);
+            triggerTileVisual(id);
+            
+            let delay = isSpeedMode ? Math.max(200, speed - (i * 120)) : speed;
+            await new Promise(r => currentTimeout = setTimeout(r, delay)); 
+        }
+
+        statusText.innerText = "Your Turn!";
+        isShowing = false;
+        if(document.getElementById('timerMode').classList.contains('active')) startTimer();
+    }
+
+    function startTimer() {
+        timerBar.style.display = 'block';
+        let timeLeft = 100;
+        // ปรับเวลาให้สัมพันธ์กับระดับยากมาก (6 ขั้น)
+        const totalTime = currentSteps * 1400; 
+        const step = 100;
+        
+        timerInterval = setInterval(() => {
+            timeLeft -= (step / totalTime) * 100;
+            timerFill.style.width = timeLeft + "%";
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                finish(false, "Time Out!");
+            }
+        }, step);
+    }
+
+    function handleInput(id) {
+        if (isShowing || sequence.length === 0) return;
+        
+        triggerTileVisual(id);
+        playerSequence.push(id);
+        const idx = playerSequence.length - 1;
+
+        if (playerSequence[idx] !== sequence[idx]) {
+            finish(false);
+            return;
+        }
+        if (playerSequence.length === sequence.length) {
+            finish(true);
+        }
+    }
+
+    function finish(success, reason = "") {
+        clearInterval(timerInterval);
+        timerBar.style.display = 'none';
+        gameGrid.classList.remove('chaos-active');
+        
+        const msg = document.createElement('div');
+        if (success) {
+            statusText.innerText = "✅ Pattern Matched!";
+            msg.innerHTML = `🌸 Win: ${gridSize}x${gridSize} - ${currentSteps} steps`;
+            msg.style.color = "#28a745";
+        } else {
+            statusText.innerText = reason ? "❌ " + reason : "❌ Incorrect!";
+            msg.innerHTML = `💢 Fail: ${gridSize}x${gridSize} - ${currentSteps} steps`;
+            msg.style.color = "#dc3545";
+        }
+        log.prepend(msg);
+        endSession();
+    }
+
+    function resetGame() {
+        isShowing = false;
+        clearTimeout(currentTimeout);
+        clearInterval(timerInterval);
+        statusText.innerText = "Game Reset!";
+        timerBar.style.display = 'none';
+        gameGrid.classList.remove('chaos-active');
+        endSession();
+    }
+
+    function endSession() {
+        sequence = [];
+        playerSequence = [];
+        actionBtn.style.display = 'block';
+        actionBtn.innerText = "PLAY AGAIN";
+        quitBtn.style.display = 'none';
+        toggleConfig(true);
+    }
+
+    function toggleConfig(enable) {
+        document.querySelectorAll('.toggle-btn').forEach(b => b.style.pointerEvents = enable ? 'auto' : 'none');
+    }
+
+    initGrid();
+</script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
